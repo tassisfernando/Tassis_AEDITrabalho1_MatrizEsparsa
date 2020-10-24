@@ -7,25 +7,28 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 import model.MatrizEsparsa;
 import model.MatrizException;
 
+/*
+    Classe principal que serve como interface com o usuário
+*/
 public class Main {
 
-    private static Scanner scn = new Scanner(System.in);
-    private static Scanner lerArquivo;
+    private static Scanner scn = new Scanner(System.in); //Scanner para ler entradas do usuário
+    private static Scanner lerArquivo; //Scanner para ler arquivos
 
-    private static MatrizEsparsa<Integer> matrizImagem;
-    private static Integer maxVal;
-    private static int escolha;
-    private static String nomeArquivo;
+    private static MatrizEsparsa<Integer> matrizImagem; //referência a um objeto da matriz esparsa a ser instanciado
+    private static Integer maxVal; //máximo valor da escala de cinza a ser lido no arquivo .pgm
+    private static int escolha; //variável que guarda a opção de operação escolhida pelo usuário nos menus
+    private static String nomeArquivo; //variável que guarda o nome do arquivo a ser lido pelo usuário 
 
     public static void main(String[] args) {
         menuInicial();
     }
 
+    //Menu inicial do programa
     private static void menuInicial() {
 
         escolha = -1;
@@ -51,6 +54,7 @@ public class Main {
         } while (escolha != 0);
     }
 
+    //método que recebe o nome do arquivo que o usuário insere e encaminha para o menu de imagem
     private static void lerArquivo() {
         System.out.println("Informe o nome do arquivo a ser processado (sem a extensão '.pgm'): ");
         nomeArquivo = scn.next();
@@ -59,6 +63,7 @@ public class Main {
         menuImagem();
     }
 
+    //método que recebe o nome do arquivo, procura-o e caso encontre, percorre-o e cria a matriz esparsa 
     private static void carregarArquivo(String nomeArquivo) {
         try {
             File arq = new File(nomeArquivo);
@@ -66,7 +71,7 @@ public class Main {
 
             if (arq.exists()) {
                 String tipo = lerArquivo.next();
-                if (!tipo.equals("P2")) {
+                if (!tipo.equals("P2")) { //verifica se é o identificador P2
                     throw new IOException("Arquivo com formato não suportado.");
                 }
 
@@ -75,6 +80,7 @@ public class Main {
                 maxVal = lerArquivo.nextInt();
                 matrizImagem = new MatrizEsparsa<Integer>(nLinhas, nColunas);
 
+                //Laço para percorre a matriz com os bits
                 for (int l = 0; l < nLinhas; l++) {
                     for (int c = 0; c < nColunas; c++) {
                         int bit = lerArquivo.nextShort();   //pega o próximo elemento da matriz
@@ -97,6 +103,7 @@ public class Main {
         }
     }
 
+    //menu de manipulação da imagem
     private static void menuImagem() {
         escolha = -1;
         do {
@@ -118,10 +125,10 @@ public class Main {
                     menuInicial();
                     break;
                 case 1:
-                    System.out.println("Imagem: \n\n" + matrizImagem);
+                    imprimirImagem();
                     break;
                 case 2:
-                    inserirBorda(3);
+                    inserirBorda(3); //3 pixels de borda, como pedido no trabalho
                     break;
                 case 3:
                     inverterImagem();
@@ -138,6 +145,12 @@ public class Main {
         } while (escolha != 0);
     }
 
+    //método que imprime a imagem (matriz esparsa)
+    private static void imprimirImagem() {
+        System.out.println("Imagem: \n\n" + matrizImagem);
+    }
+
+    //chama o método de inserir borda na imagem (método do objeto matriz)
     private static void inserirBorda(int qtdPix) {
         try {
             matrizImagem.inserirBorda(qtdPix, 255);
@@ -149,6 +162,7 @@ public class Main {
         }
     }
 
+    //chama o método que inverte as cores da imagem (método do objeto matriz)
     private static void inverterImagem() {
         try {
             matrizImagem.inverterCores(maxVal);
@@ -161,15 +175,17 @@ public class Main {
 
     }
 
+    //chama o método que rotaciona a imagem em 90° no sentido horário (método do objeto matriz)
     private static void rotacionarImagem() {
         try {
             matrizImagem = matrizImagem.rotacionarImagem();
-            System.out.println("\n=> Imagem rotacionada com sucesso (90° graus).\n");
+            System.out.println("\n=> Imagem rotacionada com sucesso (90° graus no sentido horário).\n");
         } catch (Exception ex) {
             System.err.println("Erro ao rotacionar imagem: " + ex.getMessage());
         }
     }
 
+    //método que cria um arquivo e salva na pasta raiz do projeto com o conteúdo da imagem editada
     private static void salvarArquivo() {
         BufferedWriter arq;
         String nomeArq = geraNome();
@@ -185,6 +201,7 @@ public class Main {
         }
     }
 
+    //método que gera um nome a partir da data e do horário atual
     private static String geraNome() {
         Date date = new Date();
         Calendar today = Calendar.getInstance();
